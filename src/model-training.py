@@ -4,7 +4,8 @@ import tensorflow as tf
 
 from tensorflow import keras 
 from tensorflow.keras import layers
-from sklearn.model_selection import train_test_split
+from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
+from sklearn.model_selection import train_test_split, cross_val_score, KFold
 
 
 data_location = '/media/jonathan/HDD/data/new-york-city-taxi-fare/feature-engineered-csvs/'
@@ -43,6 +44,8 @@ X = training_data.drop(['key', 'fare_amount'], axis=1)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+print(X_train.shape)
+
 from sklearn.linear_model import LinearRegression
 
 reg = LinearRegression(fit_intercept=False).fit(X_train, y_train)
@@ -53,6 +56,19 @@ def rmse(y_true, y_pred):
 y_pred = reg.predict(X_test)
 print(rmse(y_test, y_pred))
 
+def baseline_model():
+    model = keras.Sequential()
+    model.add(layers.Dense(64, input_dim=36, activation=tf.nn.relu))
+    model.add(layers.Dense(64, activation=tf.nn.relu))
+    model.add(layers.Dense(1))
+    model.compile(loss=rmse, optimizer=tf.keras.optimizers.RMSprop())
+    return model
+
+estimator = KerasRegressor(build_fn=baseline_model, epochs=10, verbose=1)
+
+kfold = KFold(n_splits=10, random_state=42)
+results = cross_val_score(estimator, X_train, y_train, cv=kfold)
+print('Result: %.2f' % (np.sqrt(results.mean())))
 
 # model = keras.Sequential([
 #     layers.Dense(64, activation=tf.nn.relu, input_shape=X_train.shape),
