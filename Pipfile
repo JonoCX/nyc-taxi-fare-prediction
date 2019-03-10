@@ -10,6 +10,9 @@ pandas = "*"
 scipy = "*"
 scikit-learn = "*"
 pylint = "*"
+dask = {extras = ["complete"],version = "*"}
+tensorflow = "*"
+xgboost = "*"
 
 [requires]
 python_version = "3.6"
